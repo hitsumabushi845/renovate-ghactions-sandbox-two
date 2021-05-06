@@ -1,0 +1,49 @@
+name: Terraform init
+
+on:
+  pull_request_target:
+    types: [opened]
+    branches:
+    - 'renovate/*'
+
+jobs:
+  terraform:
+    name: Terraform
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set terraform version
+      run: |
+        VER=$(cat .terraform-version)
+        echo "VERSION=$VER" >> $GITHUB_ENV
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: ${{ env.VERSION }}
+    
+    - name: Deploy and Commit
+      run: |
+        cd ${GITHUB_WORKSPACE}
+        # git設定
+        echo 'git initialize'
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "example@example.com"
+        git remote set-url origin "https://${{github.repository_owner}}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+        # PRのブランチに移動
+        echo 'move branch'
+        git fetch
+        git checkout -t origin/${{github.head_ref}}
+        echo 'Run terraform init'
+        terraform init -upgrade 
+        # コミットを作成する
+        echo 'create commit'
+        git add .
+        # This script will not make a commit if there are no changes.
+        if ! git diff --staged --exit-code --quiet; then \
+          git commit -m "Update";\
+        fi
+        git push origin ${{github.head_ref}}
