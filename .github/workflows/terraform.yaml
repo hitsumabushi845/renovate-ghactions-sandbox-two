@@ -1,10 +1,6 @@
 name: Terraform init
 
-on:
-  pull_request_target:
-    branches:
-    - 'renovate/*'
-    - 'shimada/*'
+on: pull_request_target
 
 jobs:
   terraform:
