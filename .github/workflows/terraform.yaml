@@ -35,7 +35,13 @@ jobs:
         git fetch
         git checkout -t origin/${{github.head_ref}}
         echo 'Run terraform init'
-        terraform init -upgrade 
+        array=($(find . -type d -mindepth 1 -maxdepth 1 ! -regex "\.*\/\..*"))
+        for directory in "${array[@]}"; do
+          echo "Execute on $directory"
+          cd $directory
+          terraform init -upgrade 
+          cd ../
+        done
         # コミットを作成する
         echo 'create commit'
         git add .
