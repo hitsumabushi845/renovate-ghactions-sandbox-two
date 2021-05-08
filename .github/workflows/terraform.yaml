@@ -47,7 +47,15 @@ jobs:
         echo 'create commit'
         git add .
         # This script will not make a commit if there are no changes.
-        if ! git diff --staged --exit-code --quiet; then \
+        if 
+          ! git diff --staged --exit-code --quiet -- */.terraform.lock.hcl &&
+          git diff --staged --exit-code --quiet -- ':(exclude)*/.terraform.lock.hcl'
+        then
+          # .terraform.lock.hcl ファイルのみに差分がある場合はコミット
           git commit -m "Update lock file";\
+          git push origin ${{github.head_ref}}
+        else
+          git diff --staged
+          exit 1
         fi
-        git push origin ${{github.head_ref}}
+        exit 0
