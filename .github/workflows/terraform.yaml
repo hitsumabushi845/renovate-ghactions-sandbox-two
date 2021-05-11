@@ -34,19 +34,19 @@ jobs:
         git config --global user.email "example@example.com"
         git remote set-url origin "https://${{github.repository_owner}}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
         echo 'Run terraform init'
-        array=($(find . -type d -mindepth 1 -maxdepth 1 ! -regex "\.*\/\..*"))
+        array=($(find . -type d -mindepth 2 -maxdepth 2 ! -regex "\.*\/\..*"))
         for directory in "${array[@]}"; do
           echo "Execute on $directory"
           cd $directory
           terraform init -upgrade -lock=false -backend=false -get=false
-          cd ../
+          cd ../../
         done
         # コミットを作成する
         echo 'create commit'
         # This script will not make a commit if there are no changes.
         if 
-          ! git diff --exit-code --quiet -- */.terraform.lock.hcl &&
-          git diff --exit-code --quiet -- ':(exclude)*/.terraform.lock.hcl'
+          ! git diff --exit-code --quiet -- tenants/*/.terraform.lock.hcl &&
+          git diff --exit-code --quiet -- ':(exclude)tenants/*/.terraform.lock.hcl'
         then
           # .terraform.lock.hcl ファイルのみに差分がある場合はコミット
           git add .
