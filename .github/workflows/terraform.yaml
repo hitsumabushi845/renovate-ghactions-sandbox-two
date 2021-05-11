@@ -19,8 +19,7 @@ jobs:
 
     - name: Set terraform version
       run: |
-        VER=$(cat .terraform-version)
-        echo "VERSION=$VER" >> $GITHUB_ENV
+        echo "VERSION=$(cat .terraform-version)" >> $GITHUB_ENV
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
@@ -40,22 +39,22 @@ jobs:
         for directory in "${array[@]}"; do
           echo "Execute on $directory"
           cd $directory
-          terraform init -upgrade 
+          terraform init -upgrade -lock=false -backend=false -get=false
           cd ../
         done
         # コミットを作成する
         echo 'create commit'
-        git add .
         # This script will not make a commit if there are no changes.
         if 
-          ! git diff --staged --exit-code --quiet -- */.terraform.lock.hcl &&
-          git diff --staged --exit-code --quiet -- ':(exclude)*/.terraform.lock.hcl'
+          ! git diff --exit-code --quiet -- */.terraform.lock.hcl &&
+          git diff --exit-code --quiet -- ':(exclude)*/.terraform.lock.hcl'
         then
           # .terraform.lock.hcl ファイルのみに差分がある場合はコミット
+          git add .
           git commit -m "Update lock file";\
           git push origin ${{github.head_ref}}
         else
-          git diff --staged
+          git diff
           exit 1
         fi
         exit 0
