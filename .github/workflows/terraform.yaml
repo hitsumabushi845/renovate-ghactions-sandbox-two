@@ -29,7 +29,8 @@ jobs:
       run: |
         cd ${GITHUB_WORKSPACE}
         echo 'Run terraform init'
-        ws_dirs=($(git diff ${{github.head_ref}} ${{github.base_ref}} --name-only | xargs -L1 dirname | uniq))
+        git fetch --depth 1 origin ${{ github.base_ref }}
+        ws_dirs=($(git diff origin/${{github.base_ref}} HEAD --name-only | xargs -L1 dirname | uniq))
         echo $ws_dirs
         for workspace in "${ws_dirs[@]}"; do
           echo "Execute on $workspace"
