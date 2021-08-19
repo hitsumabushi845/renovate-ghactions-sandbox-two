@@ -39,8 +39,8 @@ jobs:
           popd
         done
         if 
-          ! git diff --exit-code --quiet -- tenants/*/.terraform.lock.hcl &&
-          git diff --exit-code --quiet -- ':(exclude)tenants/*/.terraform.lock.hcl'
+          ! git diff --exit-code --quiet -- */.terraform.lock.hcl &&
+          git diff --exit-code --quiet -- ':(exclude)*/.terraform.lock.hcl'
         then
           # .terraform.lock.hcl ファイルのみに差分がある場合はコミット
           echo 'git initialize'
@@ -51,7 +51,7 @@ jobs:
           git commit -m "Update lock file";\
           git push origin ${{github.head_ref}}
         elif 
-          ! git diff --exit-code --quiet -- ':(exclude)tenants/*/.terraform.lock.hcl'
+          ! git diff --exit-code --quiet -- ':(exclude)*/.terraform.lock.hcl'
         then
           echo 'diff detected'
           git diff
