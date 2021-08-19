@@ -29,11 +29,12 @@ jobs:
       run: |
         cd ${GITHUB_WORKSPACE}
         echo 'Run terraform init'
-        ws_dirs=($(find . -type f -name '*.tf' | xargs -L1 dirname | uniq))
+        ws_dirs=($(git diff ${{github.head_ref}} ${{github.base_ref}} --name-only | xargs -L1 dirname | uniq))
+        echo $ws_dirs
         for workspace in "${ws_dirs[@]}"; do
           echo "Execute on $workspace"
           pushd $workspace
-          terraform init -upgrade -lock=false -backend=false -get=false
+          terraform init -upgrade -backend=false
           popd
         done
         if 
@@ -48,8 +49,12 @@ jobs:
           git add .
           git commit -m "Update lock file";\
           git push origin ${{github.head_ref}}
-        else
+        elif 
+          ! git diff --exit-code --quiet -- ':(exclude)tenants/*/.terraform.lock.hcl'
+        then
+          echo 'diff detected'
           git diff
           exit 1
+        else
+          echo "no diff"
         fi
-        exit 0
